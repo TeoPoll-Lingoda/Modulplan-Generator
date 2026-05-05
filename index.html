@@ -1,177 +1,156 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modulplan-Generator</title>
-    <style>
-        :root {
-            --blue-dark: #1F4E79; --blue-mid: #2E75B6; --blue-light: #D6E8F7;
-            --blue-tint: #EBF3FB; --red-bg: #FAECE7; --red-text: #C00000;
-            --amber-bg: #FFF8E1; --amber-text: #7D5700; --green-bg: #E8F5E9;
-            --green-text: #2E7D32; --grey-100: #F5F5F5; --grey-200: #E8E8E8;
-            --grey-400: #9E9E9E; --grey-700: #424242; --text: #1A1A1A;
-            --border: #DDDDDD; --radius: 8px; --radius-sm: 4px;
-            --shadow: 0 1px 4px rgba(0,0,0,.08);
-            font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
-        }
-        body { background: var(--grey-100); color: var(--text); min-height: 100vh; margin: 0; }
-        #app { max-width: 800px; margin: 0 auto; padding-bottom: 3rem; }
-        .app-header { background: var(--blue-dark); color: #fff; padding: 1rem 1.5rem; }
-        .tab-bar { display: flex; background: #fff; border-bottom: 2px solid var(--grey-200); position: sticky; top: 0; z-index: 10; }
-        .tab { flex: 1; padding: .75rem; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 500; }
-        .tab.active { color: var(--blue-dark); border-bottom-color: var(--blue-dark); }
-        .tab-panel { display: none; padding: 1.25rem; }
-        .tab-panel.active { display: block; }
-        .card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
-        .field { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.8rem; margin-bottom: 0.3rem; color: var(--grey-700); }
-        input, textarea { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius-sm); }
-        .weekday-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-        .wd-btn { padding: 0.5rem; border: 1px solid var(--border); background: #fff; cursor: pointer; border-radius: var(--radius-sm); }
-        .wd-btn.selected { background: var(--blue-tint); border-color: var(--blue-mid); }
-        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
-        .stat-card { background: #fff; padding: 1rem; border-radius: var(--radius); text-align: center; border: 1px solid var(--border); }
-        .stat-num { font-size: 1.5rem; font-weight: bold; color: var(--blue-dark); }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; background: #fff; }
-        th, td { border: 1px solid var(--grey-200); padding: 0.75rem; text-align: left; }
-        th { background: var(--grey-100); font-size: 0.75rem; text-transform: uppercase; }
-        .row-off { background: var(--red-bg); color: var(--red-text); }
-        .btn-primary { background: var(--blue-dark); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: var(--radius-sm); cursor: pointer; width: 100%; font-weight: bold; margin-top: 1rem; }
-        textarea { height: 150px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modulplan-Generator</title>
+  <link rel="stylesheet" href="./src/styles/main.css" />
 </head>
 <body>
+  <div id="app">
+    <header class="app-header">
+      <h1>Modulplan-Generator</h1>
+    </header>
 
-<div id="app">
-    <header class="app-header"><h1>Modulplan-Generator</h1></header>
     <nav class="tab-bar">
-        <button class="tab active" data-tab="setup">Kursdetails</button>
-        <button class="tab" data-tab="modules">Module & Themen</button>
-        <button class="tab" data-tab="preview">Vorschau</button>
+      <button class="tab active" data-tab="setup">Kursdetails</button>
+      <button class="tab" data-tab="modules">Module &amp; Themen</button>
+      <button class="tab" data-tab="preview">Vorschau</button>
     </nav>
 
-    <main id="main-content">
-        <section id="tab-setup" class="tab-panel active">
-            <div class="card">
-                <h2>Kursdetails</h2>
-                <div class="field">
-                    <label>Kursname</label>
-                    <input type="text" id="courseName" value="Job BSK – Bahninfrastruktur">
-                </div>
-                <div class="field">
-                    <label>Beschreibung</label>
-                    <textarea id="descText">Standard BAMF BSK Beschreibung...</textarea>
-                </div>
-            </div>
-            <div class="card">
-                <h2>Zeitplan</h2>
-                <div class="field">
-                    <label>Startdatum</label>
-                    <input type="date" id="startDate" value="2026-05-27">
-                </div>
-                <div class="field">
-                    <label>Anzahl Unterrichtstage</label>
-                    <input type="number" id="numDays" value="36">
-                </div>
-                <label>Wochentage</label>
-                <div class="weekday-grid" id="weekdayGrid">
-                    <button class="wd-btn" data-day="1">Mo</button>
-                    <button class="wd-btn" data-day="2">Di</button>
-                    <button class="wd-btn selected" data-day="3">Mi</button>
-                    <button class="wd-btn selected" data-day="4">Do</button>
-                    <button class="wd-btn" data-day="5">Fr</button>
-                    <button class="wd-btn" data-day="6">Sa</button>
-                    <button class="wd-btn" data-day="0">So</button>
-                </div>
-            </div>
-        </section>
+    <main class="tab-content">
 
-        <section id="tab-modules" class="tab-panel">
-            <div class="card">
-                <h2>Module & Themen</h2>
-                <div id="moduleList"></div>
-            </div>
-        </section>
+      <!-- ── SETUP TAB ── -->
+      <section id="tab-setup" class="tab-panel active">
 
-        <section id="tab-preview" class="tab-panel">
-            <div class="stats-row" id="statsRow"></div>
-            <div id="previewContent"></div>
-            <button class="btn-primary" id="downloadBtn">Als Word (.docx) speichern</button>
-        </section>
+        <div class="card">
+          <h2>Allgemeine Informationen</h2>
+          <div class="field">
+            <label for="courseName">Kursname</label>
+            <input type="text" id="courseName" value="Job BSK – Bahninfrastruktur" />
+          </div>
+          <div class="field">
+            <label for="descText">Beschreibungstext</label>
+            <textarea id="descText" rows="12">Die BAMF Berufssprachkurse (BSK)
+Die BAMF Berufssprachkurse (BSK) sind das zentrale Instrument der Bundesregierung zur berufsbezogenen Deutschsprachförderung. Sie schließen direkt an den Integrationskurs an und bereiten Fachkräfte gezielt auf den deutschen Arbeitsmarkt vor.
+
+Unterrichtaufbau
+
+Der Unterricht findet im Gruppenverband statt, ergänzt durch ein anschließendes individuelles Einzelcoaching. In diesen Einzelsitzungen ermittelt die Sprachlehrkraft den spezifischen Bedarf, führt gezielte Übungen durch und berät zu effektiven Lernstrategien, um die Sprachkompetenz der Teilnehmenden individuell zu fördern.
+
+Hinweise:
+
+–     Wenn ein Unterrichtstag auf einen bundesweiten Feiertag fällt, findet in dieser Woche kein Unterricht statt. In der folgenden Woche geht der Unterricht wie gewohnt weiter.
+–     Wenn die Lehrkraft fehlt (z. B. wegen Krankheit) und keine Vertretung gefunden wurde, informieren wir Sie vor Unterrichtsbeginn per E-Mail oder WhatsApp, dass der Unterrichtstag ausfällt.
+–     Abwesenheit im Kurs (z. B. Krankheit und Urlaub): Bitte beachten Sie die Informationen aus der E-Mail vor Kursbeginn und die Informationen aus den Onboarding Modulen auf der Lernplattform.</textarea>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Unterrichtstage &amp; Zeiten</h2>
+          <label class="field-label">Wochentage (max. 2)</label>
+          <div class="weekday-grid" id="weekdayGrid">
+            <button class="wd-btn" data-day="1">Mo</button>
+            <button class="wd-btn" data-day="2">Di</button>
+            <button class="wd-btn selected" data-day="3">Mi</button>
+            <button class="wd-btn selected" data-day="4">Do</button>
+            <button class="wd-btn" data-day="5">Fr</button>
+            <button class="wd-btn" data-day="6">Sa</button>
+            <button class="wd-btn" data-day="0">So</button>
+          </div>
+
+          <div class="time-slots" id="timeSlots">
+            <div class="time-slot-box">
+              <h3 id="slot1Label">Tag 1</h3>
+              <div class="field">
+                <label>Unterrichtszeit</label>
+                <div class="time-range">
+                  <input type="time" id="time1start" value="16:00" />
+                  <span class="time-sep">–</span>
+                  <input type="time" id="time1end" value="19:15" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="format1">Kursformat</label>
+                <input type="text" id="format1" value="Gruppenunterricht & Einzelcoaching" />
+              </div>
+            </div>
+            <div class="time-slot-box" id="slot2box">
+              <h3 id="slot2Label">Tag 2</h3>
+              <div class="field">
+                <label>Unterrichtszeit</label>
+                <div class="time-range">
+                  <input type="time" id="time2start" value="16:00" />
+                  <span class="time-sep">–</span>
+                  <input type="time" id="time2end" value="19:15" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="format2">Kursformat</label>
+                <input type="text" id="format2" value="Gruppenunterricht & Einzelcoaching" />
+              </div>
+            </div>
+          </div>
+
+          <label class="toggle-same">
+            <input type="checkbox" id="sameTime" checked />
+            <span>Gleiche Zeiten für beide Tage</span>
+          </label>
+        </div>
+
+        <div class="card">
+          <h2>Kursdauer</h2>
+          <div class="row2">
+            <div class="field">
+              <label for="startDate">Startdatum</label>
+              <input type="date" id="startDate" value="2026-05-27" />
+            </div>
+            <div class="field">
+              <label for="numDays">Anzahl Unterrichtstage (aktive)</label>
+              <div class="input-with-hint">
+                <input type="number" id="numDays" min="2" max="300" value="36" />
+                <span class="hint" id="endPreview">–</span>
+              </div>
+            </div>
+          </div>
+          <div class="info-box info-amber" id="cancelledInfo" style="display:none"></div>
+        </div>
+
+        <div class="card">
+          <h2>Freie Tage &amp; Feiertage</h2>
+          <p class="info">Nationale Feiertage sind vorausgewählt. Ausgefallene Tage werden in der Sequenz übersprungen — kein Inhalt wird ausgelassen.</p>
+          <div id="holidaySection">
+            <p class="muted">Startdatum und Anzahl Tage eingeben…</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── MODULES TAB ── -->
+      <section id="tab-modules" class="tab-panel">
+        <div class="card">
+          <h2>Module &amp; Themen <span class="save-note" id="saveNote"></span></h2>
+          <p class="info" id="modInfo">–</p>
+          <div id="modulList"></div>
+        </div>
+      </section>
+
+      <!-- ── PREVIEW TAB ── -->
+      <section id="tab-preview" class="tab-panel">
+        <div class="stats-row" id="statsRow"></div>
+        <div class="card">
+          <div id="previewContent">
+            <p class="muted">Einstellungen eingeben…</p>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" id="generateBtn">Dokument erstellen ↗</button>
+        </div>
+      </section>
+
     </main>
-</div>
+  </div>
 
-<script src="https://unpkg.com/docx@9.1.0/build/index.js" onerror="console.error('Company firewall blocked the Word Library!')"></script>
-
-<script>
-// We wait until the page is 100% ready
-window.onload = function() {
-    console.log("HEARTBEAT: The app brain has started!");
-
-    // --- STATE ---
-    const state = {
-        courseName: 'Job BSK – Bahninfrastruktur',
-        activeTab: 'setup',
-        selectedDays: [3, 4],
-        numDays: 36,
-        startDate: '2026-05-27'
-    };
-
-    // --- TAB SWITCHING LOGIC ---
-    const tabs = document.querySelectorAll('.tab');
-    const panels = document.querySelectorAll('.tab-panel');
-
-    tabs.forEach(button => {
-        button.addEventListener('click', function() {
-            const targetTab = this.getAttribute('data-tab');
-            console.log("HEARTBEAT: User clicked tab -> " + targetTab);
-
-            // 1. Remove 'active' from all tabs and panels
-            tabs.forEach(t => t.classList.remove('active'));
-            panels.forEach(p => p.classList.remove('active'));
-
-            // 2. Add 'active' to the one we clicked
-            this.classList.add('active');
-            const targetPanel = document.getElementById('tab-' + targetTab);
-            if (targetPanel) {
-                targetPanel.classList.add('active');
-            }
-
-            // 3. Update the content of the new tab
-            if (targetTab === 'preview') renderPreview();
-            if (targetTab === 'modules') renderModules();
-        });
-    });
-
-    // --- PREVIEW LOGIC ---
-    function renderPreview() {
-        console.log("HEARTBEAT: Drawing the Preview table...");
-        const container = document.getElementById('previewContent');
-        const stats = document.getElementById('statsRow');
-        
-        // Simple preview for now to test if it works
-        stats.innerHTML = `<div class="stat-card"><strong>Status:</strong> Aktiv</div>`;
-        container.innerHTML = `<p>Vorschau für <strong>${state.courseName}</strong> wird hier berechnet...</p>`;
-    }
-
-    function renderModules() {
-        console.log("HEARTBEAT: Drawing the Modules list...");
-        document.getElementById('moduleList').innerHTML = "<p>Module werden geladen...</p>";
-    }
-
-    // --- DOWNLOAD LOGIC ---
-    document.getElementById('downloadBtn').addEventListener('click', async () => {
-        if (!window.docx) {
-            alert("Fehler: Die Word-Funktion wurde von Ihrer Firmen-IT blockiert.");
-            return;
-        }
-        console.log("HEARTBEAT: Attempting Word Export...");
-        // (Word export code would go here)
-    });
-
-    console.log("HEARTBEAT: Listeners attached. Try clicking the tabs now!");
-};
-</script>
+  <script type="module" src="./src/main.js"></script>
 </body>
 </html>
