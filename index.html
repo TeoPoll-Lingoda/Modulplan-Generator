@@ -102,159 +102,76 @@
     </main>
 </div>
 
-<script src="https://unpkg.com/docx@9.1.0/build/index.js"></script>
+<script src="https://unpkg.com/docx@9.1.0/build/index.js" onerror="console.error('Company firewall blocked the Word Library!')"></script>
 
 <script>
-    // --- STATE MANAGEMENT ---
+// We wait until the page is 100% ready
+window.onload = function() {
+    console.log("HEARTBEAT: The app brain has started!");
+
+    // --- STATE ---
     const state = {
         courseName: 'Job BSK – Bahninfrastruktur',
-        descText: 'Standardbeschreibung...',
-        startDate: '2026-05-27',
-        numDays: 36,
+        activeTab: 'setup',
         selectedDays: [3, 4],
-        offDates: new Set(),
-        activeTab: 'setup'
+        numDays: 36,
+        startDate: '2026-05-27'
     };
 
-    // --- UTILS & HOLIDAYS ---
-    function getEaster(y) {
-        const a = y%19, b = Math.floor(y/100), c = y%100, d = Math.floor(b/4), e = b%4, f = Math.floor((b+8)/25), g = Math.floor((b-f+1)/3), h = (19*a+b-d-g+15)%30, i = Math.floor(c/4), k = c%4, l = (32+2*e+2*i-h-k)%7, m = Math.floor((a+11*h+22*l)/451), mo = Math.floor((h+l-7*m+114)/31), da = ((h+l-7*m+114)%31)+1;
-        return new Date(y, mo-1, da);
-    }
-    function getHolidays(y) {
-        const e = getEaster(y);
-        const add = (d) => { let res = new Date(e); res.setDate(res.getDate()+d); return res.toISOString().split('T')[0]; };
-        return {
-            [`${y}-01-01`]: 'Neujahr', [add(-2)]: 'Karfreitag', [add(1)]: 'Ostermontag', [`${y}-05-01`]: 'Tag der Arbeit',
-            [add(39)]: 'Christi Himmelfahrt', [add(50)]: 'Pfingstmontag', [add(60)]: 'Fronleichnam', [`${y}-10-03`]: 'Tag der Deutschen Einheit',
-            [`${y}-12-25`]: '1. Weihnachtstag', [`${y}-12-26`]: '2. Weihnachtstag'
-        };
-    }
+    // --- TAB SWITCHING LOGIC ---
+    const tabs = document.querySelectorAll('.tab');
+    const panels = document.querySelectorAll('.tab-panel');
 
-    // --- CORE LOGIC ---
-    function buildSchedule() {
-        let current = new Date(state.startDate);
-        let days = [];
-        let activeFound = 0;
-        const hols = getHolidays(current.getFullYear());
+    tabs.forEach(button => {
+        button.addEventListener('click', function() {
+            const targetTab = this.getAttribute('data-tab');
+            console.log("HEARTBEAT: User clicked tab -> " + targetTab);
 
-        while (activeFound < state.numDays) {
-            let iso = current.toISOString().split('T')[0];
-            let dow = current.getDay();
-            let isSelected = state.selectedDays.includes(dow);
-            let holiday = hols[iso];
+            // 1. Remove 'active' from all tabs and panels
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
 
-            if (isSelected) {
-                days.push({
-                    date: iso,
-                    isOff: !!holiday,
-                    holidayName: holiday,
-                    activeIdx: holiday ? null : activeFound,
-                    dayName: ['So','Mo','Di','Mi','Do','Fr','Sa'][dow]
-                });
-                if (!holiday) activeFound++;
+            // 2. Add 'active' to the one we clicked
+            this.classList.add('active');
+            const targetPanel = document.getElementById('tab-' + targetTab);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
             }
-            current.setDate(current.getDate() + 1);
-        }
-        return days;
-    }
 
-    // --- UI RENDERING ---
-    function renderTabs() {
-        document.querySelectorAll('.tab').forEach(t => {
-            t.classList.toggle('active', t.dataset.tab === state.activeTab);
+            // 3. Update the content of the new tab
+            if (targetTab === 'preview') renderPreview();
+            if (targetTab === 'modules') renderModules();
         });
-        document.querySelectorAll('.tab-panel').forEach(p => {
-            p.classList.toggle('active', p.id === `tab-${state.activeTab}`);
-        });
-        if (state.activeTab === 'preview') renderPreview();
-        if (state.activeTab === 'modules') renderModules();
-    }
+    });
 
+    // --- PREVIEW LOGIC ---
     function renderPreview() {
-        const schedule = buildSchedule();
+        console.log("HEARTBEAT: Drawing the Preview table...");
         const container = document.getElementById('previewContent');
         const stats = document.getElementById('statsRow');
         
-        stats.innerHTML = `
-            <div class="stat-card"><div class="stat-num">${state.numDays}</div><div class="stat-label">Tage</div></div>
-            <div class="stat-card"><div class="stat-num">${schedule.length}</div><div class="stat-label">Gesamtzeitraum</div></div>
-            <div class="stat-card"><div class="stat-num">${schedule.filter(d => d.isOff).length}</div><div class="stat-label">Feiertage</div></div>
-        `;
-
-        let html = `<table><tr><th>Datum</th><th>Tag</th><th>Status / Thema</th></tr>`;
-        schedule.forEach(d => {
-            html += `<tr class="${d.isOff ? 'row-off' : ''}">
-                <td>${d.date}</td><td>${d.dayName}</td>
-                <td>${d.isOff ? d.holidayName : 'Unterricht Tag ' + (d.activeIdx + 1)}</td>
-            </tr>`;
-        });
-        container.innerHTML = html + `</table>`;
+        // Simple preview for now to test if it works
+        stats.innerHTML = `<div class="stat-card"><strong>Status:</strong> Aktiv</div>`;
+        container.innerHTML = `<p>Vorschau für <strong>${state.courseName}</strong> wird hier berechnet...</p>`;
     }
 
     function renderModules() {
-        const container = document.getElementById('moduleList');
-        container.innerHTML = `<p class="info">Hier können Sie die Modulnamen anpassen. Automatisch generiert basierend auf ${state.numDays} Tagen.</p>`;
+        console.log("HEARTBEAT: Drawing the Modules list...");
+        document.getElementById('moduleList').innerHTML = "<p>Module werden geladen...</p>";
     }
 
-    // --- EVENTS ---
-    document.querySelector('.tab-bar').addEventListener('click', e => {
-        if (e.target.classList.contains('tab')) {
-            state.activeTab = e.target.dataset.tab;
-            renderTabs();
-        }
-    });
-
-    document.getElementById('weekdayGrid').addEventListener('click', e => {
-        if (e.target.classList.contains('wd-btn')) {
-            const day = parseInt(e.target.dataset.day);
-            if (state.selectedDays.includes(day)) {
-                state.selectedDays = state.selectedDays.filter(d => d !== day);
-            } else {
-                state.selectedDays.push(day);
-            }
-            document.querySelectorAll('.wd-btn').forEach(b => {
-                b.classList.toggle('selected', state.selectedDays.includes(parseInt(b.dataset.day)));
-            });
-        }
-    });
-
-    document.getElementById('startDate').addEventListener('change', e => state.startDate = e.target.value);
-    document.getElementById('numDays').addEventListener('input', e => state.numDays = parseInt(e.target.value));
-
-    // --- DOCX GENERATION ---
+    // --- DOWNLOAD LOGIC ---
     document.getElementById('downloadBtn').addEventListener('click', async () => {
-        const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell } = window.docx;
-        const schedule = buildSchedule();
-
-        const doc = new Document({
-            sections: [{
-                children: [
-                    new Paragraph({ children: [new TextRun({ text: state.courseName, bold: true, size: 32 })] }),
-                    new Paragraph({ text: "\n" }),
-                    new Table({
-                        rows: [
-                            new TableRow({ children: [new TableCell({ children: [new Paragraph("Datum")] }), new TableCell({ children: [new Paragraph("Thema")] })] }),
-                            ...schedule.map(d => new TableRow({
-                                children: [
-                                    new TableCell({ children: [new Paragraph(d.date)] }),
-                                    new TableCell({ children: [new Paragraph(d.isOff ? d.holidayName : "Unterricht")] })
-                                ]
-                            }))
-                        ]
-                    })
-                ]
-            }]
-        });
-
-        const blob = await Packer.toBlob(doc);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "Kursplan.docx";
-        a.click();
+        if (!window.docx) {
+            alert("Fehler: Die Word-Funktion wurde von Ihrer Firmen-IT blockiert.");
+            return;
+        }
+        console.log("HEARTBEAT: Attempting Word Export...");
+        // (Word export code would go here)
     });
 
+    console.log("HEARTBEAT: Listeners attached. Try clicking the tabs now!");
+};
 </script>
 </body>
 </html>
